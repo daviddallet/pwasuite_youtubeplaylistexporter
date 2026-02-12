@@ -122,7 +122,11 @@ export function LoginPage() {
             }}
           >
             <img
-              src={isDarkMode ? '/images/developed-with-youtube-light.png' : '/images/developed-with-youtube-dark.png'}
+              src={
+                isDarkMode
+                  ? '/images/developed-with-youtube-light.png'
+                  : '/images/developed-with-youtube-dark.png'
+              }
               alt="Developed with YouTube"
               style={{ height: 96 }}
             />

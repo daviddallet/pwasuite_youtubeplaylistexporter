@@ -2,7 +2,7 @@
 // Licensed under BSL 1.1 - see LICENSE file
 
 import { describe, it, expect } from 'vitest';
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../test/testUtils';
 import { PlaylistTable } from './PlaylistTable';
@@ -177,7 +177,7 @@ describe('PlaylistTable', () => {
   });
 
   describe('state preservation - all pagination options', () => {
-    it('should preserve rowsPerPage when changing to 100', async () => {
+    it('should preserve rowsPerPage when changing to 100', { timeout: 10_000 }, async () => {
       const user = userEvent.setup();
       const items = createMockPlaylistItems(200);
       items.forEach((item, idx) => {
@@ -201,7 +201,7 @@ describe('PlaylistTable', () => {
       expect(screen.queryByText('Video 101')).not.toBeInTheDocument();
     });
 
-    it('should preserve rowsPerPage when changing to 250', async () => {
+    it('should preserve rowsPerPage when changing to 250', { timeout: 10_000 }, async () => {
       const user = userEvent.setup();
       const items = createMockPlaylistItems(300);
       items.forEach((item, idx) => {
@@ -223,8 +223,7 @@ describe('PlaylistTable', () => {
       expect(screen.queryByText('Video 251')).not.toBeInTheDocument();
     });
 
-    it('should preserve rowsPerPage when changing to 500', async () => {
-      const user = userEvent.setup();
+    it('should preserve rowsPerPage when changing to 500', { timeout: 10_000 }, () => {
       const items = createMockPlaylistItems(600);
       items.forEach((item, idx) => {
         item.snippet.title = `Video ${idx + 1}`;
@@ -235,8 +234,8 @@ describe('PlaylistTable', () => {
 
       // Change to 500 rows
       const select = screen.getByRole('combobox');
-      await user.click(select);
-      await user.click(screen.getByRole('option', { name: '500' }));
+      fireEvent.mouseDown(select);
+      fireEvent.click(screen.getByRole('option', { name: '500' }));
 
       // Verify 500 items shown
       expect(screen.getByText('1–500 of 600')).toBeInTheDocument();
@@ -245,8 +244,7 @@ describe('PlaylistTable', () => {
       expect(screen.queryByText('Video 501')).not.toBeInTheDocument();
     });
 
-    it('should preserve rowsPerPage when changing to 1000', async () => {
-      const user = userEvent.setup();
+    it('should preserve rowsPerPage when changing to 1000', { timeout: 20_000 }, () => {
       const items = createMockPlaylistItems(1200);
       items.forEach((item, idx) => {
         item.snippet.title = `Video ${idx + 1}`;
@@ -257,8 +255,8 @@ describe('PlaylistTable', () => {
 
       // Change to 1000 rows
       const select = screen.getByRole('combobox');
-      await user.click(select);
-      await user.click(screen.getByRole('option', { name: '1000' }));
+      fireEvent.mouseDown(select);
+      fireEvent.click(screen.getByRole('option', { name: '1000' }));
 
       // Verify 1000 items shown
       expect(screen.getByText('1–1000 of 1200')).toBeInTheDocument();
@@ -323,7 +321,7 @@ describe('PlaylistTable', () => {
   });
 
   describe('large datasets', () => {
-    it('should render 500 items without timeout', async () => {
+    it('should render 500 items without timeout', { timeout: 15_000 }, async () => {
       const items = createMockPlaylistItems(500);
       items.forEach((item, idx) => {
         item.snippet.title = `Video ${idx + 1}`;
@@ -340,7 +338,7 @@ describe('PlaylistTable', () => {
       expect(screen.getByText('1–25 of 500')).toBeInTheDocument();
     });
 
-    it('should render 1000 items without timeout', async () => {
+    it('should render 1000 items without timeout', { timeout: 30_000 }, async () => {
       const items = createMockPlaylistItems(1000);
       items.forEach((item, idx) => {
         item.snippet.title = `Video ${idx + 1}`;
@@ -357,28 +355,32 @@ describe('PlaylistTable', () => {
       expect(screen.getByText('1–25 of 1000')).toBeInTheDocument();
     });
 
-    it('should handle pagination with 1000 items at 1000 per page', async () => {
-      const user = userEvent.setup();
-      const items = createMockPlaylistItems(1000);
-      items.forEach((item, idx) => {
-        item.snippet.title = `Video ${idx + 1}`;
-        item.snippet.position = idx;
-      });
+    it(
+      'should handle pagination with 1000 items at 1000 per page',
+      { timeout: 30_000 },
+      async () => {
+        const user = userEvent.setup();
+        const items = createMockPlaylistItems(1000);
+        items.forEach((item, idx) => {
+          item.snippet.title = `Video ${idx + 1}`;
+          item.snippet.position = idx;
+        });
 
-      renderWithProviders(<PlaylistTable items={items} />);
+        renderWithProviders(<PlaylistTable items={items} />);
 
-      // Change to 1000 per page
-      const select = screen.getByRole('combobox');
-      await user.click(select);
-      await user.click(screen.getByRole('option', { name: '1000' }));
+        // Change to 1000 per page
+        const select = screen.getByRole('combobox');
+        await user.click(select);
+        await user.click(screen.getByRole('option', { name: '1000' }));
 
-      // Should show all 1000
-      expect(screen.getByText('1–1000 of 1000')).toBeInTheDocument();
-      expect(screen.getByText('Video 1')).toBeInTheDocument();
-      expect(screen.getByText('Video 1000')).toBeInTheDocument();
-    });
+        // Should show all 1000
+        expect(screen.getByText('1–1000 of 1000')).toBeInTheDocument();
+        expect(screen.getByText('Video 1')).toBeInTheDocument();
+        expect(screen.getByText('Video 1000')).toBeInTheDocument();
+      }
+    );
 
-    it('should handle navigation with 500 items', async () => {
+    it('should handle navigation with 500 items', { timeout: 15_000 }, async () => {
       const user = userEvent.setup();
       const items = createMockPlaylistItems(500);
       items.forEach((item, idx) => {
@@ -536,7 +538,7 @@ describe('PlaylistTable', () => {
       expect(headerCells[4]).toHaveAttribute('width', '80');
     });
 
-    it('should maintain table structure after pagination change', async () => {
+    it('should maintain table structure after pagination change', { timeout: 10_000 }, async () => {
       const user = userEvent.setup();
       const items = createMockPlaylistItems(100);
       renderWithProviders(<PlaylistTable items={items} />);

@@ -58,9 +58,9 @@ describe('LoginButton', () => {
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
 
-  it('should show Google icon when not loading', () => {
+  it('should show YouTube icon when not loading', () => {
     renderWithProviders(<LoginButton />);
 
-    expect(screen.getByTestId('GoogleIcon')).toBeInTheDocument();
+    expect(screen.getByTestId('YouTubeIcon')).toBeInTheDocument();
   });
 });

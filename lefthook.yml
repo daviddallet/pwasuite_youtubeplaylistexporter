@@ -1,0 +1,18 @@
+pre-push:
+  scripts:
+    'protect-branches.sh':
+      runner: bash
+      use_stdin: true
+
+pre-commit:
+  parallel: true
+  commands:
+    format-check:
+      glob: '**/*.{ts,tsx,js,jsx,json,css,md,html,yml,yaml}'
+      run: npx prettier --check {staged_files}
+    lint:
+      glob: '**/*.{ts,tsx,js,jsx}'
+      run: npx eslint {staged_files}
+    tests:
+      tags: ['slow']
+      run: npm run test:run

@@ -16,13 +16,16 @@ A modern web application to view and export your playlists to CSV and JSON forma
 ## Screenshots
 
 ![Playlist Grid](docs/screenshots/youtube_playlist_exporter_1.png)
-*Browse your YouTube playlists*
+
+_Browse your YouTube playlists_
 
 ![Playlist Details](docs/screenshots/youtube_playlist_exporter_2.png)
-*View playlist contents and export to CSV or JSON*
+
+_View playlist contents and export to CSV or JSON_
 
 ![Export Complete](docs/screenshots/youtube_playlist_exporter_3.png)
-*Export complete - files ready for download*
+
+_Export complete - files ready for download_
 
 ## Tech Stack
 
