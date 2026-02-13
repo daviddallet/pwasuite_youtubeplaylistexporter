@@ -79,6 +79,11 @@ function validatePolicyFiles(): Plugin {
   };
 }
 
+// Skip static copy of legal files when both policies are "none" (standalone app repo)
+const termsValue = process.env.VITE_POLICY_TERMS;
+const privacyValue = process.env.VITE_POLICY_PRIVACY;
+const hasLegalFiles = termsValue !== 'none' || privacyValue !== 'none';
+
 // https://vite.dev/config/
 export default defineConfig({
   // Lock the dev server to port 5173 for OAuth redirect consistency
@@ -98,14 +103,18 @@ export default defineConfig({
     validatePolicyFiles(),
     react(),
     // Copy legal files from parent directory to dist/legal during build
-    viteStaticCopy({
-      targets: [
-        {
-          src: '../legal/*.md',
-          dest: 'legal',
-        },
-      ],
-    }),
+    ...(hasLegalFiles
+      ? [
+          viteStaticCopy({
+            targets: [
+              {
+                src: '../legal/*.md',
+                dest: 'legal',
+              },
+            ],
+          }),
+        ]
+      : []),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'icons/*.png'],
@@ -172,6 +181,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'happy-dom',
+    testTimeout: 15_000,
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     coverage: {

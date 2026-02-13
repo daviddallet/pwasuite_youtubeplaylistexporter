@@ -1,0 +1,35 @@
+name: 'Build'
+description: 'Install dependencies and build the application'
+inputs:
+  working-directory:
+    description: 'Working directory for the app'
+    required: false
+    default: '.'
+  policy-terms:
+    description: 'VITE_POLICY_TERMS value'
+    required: false
+    default: 'none'
+  policy-privacy:
+    description: 'VITE_POLICY_PRIVACY value'
+    required: false
+    default: 'none'
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
+        cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
+
+    - run: npm ci
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Build
+      run: npm run build
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        VITE_POLICY_TERMS: ${{ inputs.policy-terms }}
+        VITE_POLICY_PRIVACY: ${{ inputs.policy-privacy }}

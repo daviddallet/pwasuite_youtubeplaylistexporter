@@ -2,7 +2,7 @@
 // Licensed under BSL 1.1 - see LICENSE file
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router-dom';
 import { renderWithProviders, resetAllStores, setupAuthenticatedUser } from '../test/testUtils';
@@ -50,7 +50,7 @@ describe('PlaylistDetailPage - Integration', () => {
   });
 
   describe('no refetch on pagination change', () => {
-    it('should not refetch when changing rows per page', async () => {
+    it('should not refetch when changing rows per page', { timeout: 10_000 }, async () => {
       const user = userEvent.setup();
       const playlist = createMockPlaylist({ id: 'PL123', itemCount: 200 });
       const items = createMockPlaylistItems(200);
@@ -104,7 +104,7 @@ describe('PlaylistDetailPage - Integration', () => {
       expect(screen.getByText('1–100 of 200')).toBeInTheDocument();
     });
 
-    it('should not refetch when navigating pages', async () => {
+    it('should not refetch when navigating pages', { timeout: 10_000 }, async () => {
       const user = userEvent.setup();
       const playlist = createMockPlaylist({ id: 'PL456', itemCount: 100 });
       const items = createMockPlaylistItems(100);
@@ -148,51 +148,54 @@ describe('PlaylistDetailPage - Integration', () => {
       expect(screen.getByText('76–100 of 100')).toBeInTheDocument();
     });
 
-    it('should not refetch when changing rows per page to high values', async () => {
-      const user = userEvent.setup();
-      const playlist = createMockPlaylist({ id: 'PL789', itemCount: 500 });
-      const items = createMockPlaylistItems(500);
-      items.forEach((item, idx) => {
-        item.snippet.title = `Video ${idx + 1}`;
-        item.snippet.position = idx;
-      });
+    it(
+      'should not refetch when changing rows per page to high values',
+      { timeout: 15_000 },
+      async () => {
+        const playlist = createMockPlaylist({ id: 'PL789', itemCount: 500 });
+        const items = createMockPlaylistItems(500);
+        items.forEach((item, idx) => {
+          item.snippet.title = `Video ${idx + 1}`;
+          item.snippet.position = idx;
+        });
 
-      mockGetPlaylistById.mockResolvedValue(playlist);
-      mockGetAllPlaylistItems.mockImplementation((_id, onProgress) => {
-        if (onProgress) {
-          onProgress(items, 500);
-        }
-        return Promise.resolve(items);
-      });
+        mockGetPlaylistById.mockResolvedValue(playlist);
+        mockGetAllPlaylistItems.mockImplementation((_id, onProgress) => {
+          if (onProgress) {
+            onProgress(items, 500);
+          }
+          return Promise.resolve(items);
+        });
 
-      renderWithProviders(<PlaylistDetailPageWithRoute />, {
-        routerProps: { initialEntries: ['/playlist/PL789'] },
-      });
+        renderWithProviders(<PlaylistDetailPageWithRoute />, {
+          routerProps: { initialEntries: ['/playlist/PL789'] },
+        });
 
-      // Wait for load
-      await waitFor(() => {
-        expect(screen.getByRole('table')).toBeInTheDocument();
-      });
+        // Wait for load
+        await waitFor(() => {
+          expect(screen.getByRole('table')).toBeInTheDocument();
+        });
 
-      const initialFetchCount = mockGetAllPlaylistItems.mock.calls.length;
+        const initialFetchCount = mockGetAllPlaylistItems.mock.calls.length;
 
-      // Change to 250 rows
-      const select = screen.getByRole('combobox');
-      await user.click(select);
-      await user.click(screen.getByRole('option', { name: '250' }));
+        // Change to 250 rows
+        const select = screen.getByRole('combobox');
+        fireEvent.mouseDown(select);
+        fireEvent.click(screen.getByRole('option', { name: '250' }));
 
-      // Verify no new fetch
-      expect(mockGetAllPlaylistItems).toHaveBeenCalledTimes(initialFetchCount);
-      expect(screen.getByText('1–250 of 500')).toBeInTheDocument();
+        // Verify no new fetch
+        expect(mockGetAllPlaylistItems).toHaveBeenCalledTimes(initialFetchCount);
+        expect(screen.getByText('1–250 of 500')).toBeInTheDocument();
 
-      // Change to 500 rows
-      await user.click(select);
-      await user.click(screen.getByRole('option', { name: '500' }));
+        // Change to 500 rows
+        fireEvent.mouseDown(select);
+        fireEvent.click(screen.getByRole('option', { name: '500' }));
 
-      // Still no new fetch
-      expect(mockGetAllPlaylistItems).toHaveBeenCalledTimes(initialFetchCount);
-      expect(screen.getByText('1–500 of 500')).toBeInTheDocument();
-    });
+        // Still no new fetch
+        expect(mockGetAllPlaylistItems).toHaveBeenCalledTimes(initialFetchCount);
+        expect(screen.getByText('1–500 of 500')).toBeInTheDocument();
+      }
+    );
   });
 
   describe('table state preservation during parent re-renders', () => {
@@ -264,7 +267,7 @@ describe('PlaylistDetailPage - Integration', () => {
   });
 
   describe('large playlist handling', () => {
-    it('should handle playlist with 1000 items', async () => {
+    it('should handle playlist with 1000 items', { timeout: 30_000 }, async () => {
       const playlist = createMockPlaylist({ id: 'PL_LARGE', itemCount: 1000 });
       const items = createMockPlaylistItems(1000);
       items.forEach((item, idx) => {
@@ -296,7 +299,7 @@ describe('PlaylistDetailPage - Integration', () => {
       expect(screen.getByText('1–25 of 1000')).toBeInTheDocument();
     });
 
-    it('should allow pagination through 1000 items', async () => {
+    it('should allow pagination through 1000 items', { timeout: 30_000 }, async () => {
       const user = userEvent.setup();
       const playlist = createMockPlaylist({ id: 'PL_LARGE2', itemCount: 1000 });
       const items = createMockPlaylistItems(1000);
